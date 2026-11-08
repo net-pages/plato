@@ -121,3 +121,23 @@ export const SHOPPING: { cat: string; items: ShopItem[] }[] = [
     ],
   },
 ];
+
+// Lo que hay que comprar de más con la carta ajustada a 2.410 kcal (sumado desde ADJUST en data.ts).
+export const SHOPPING_EXTRA: { cat: string; items: ShopItem[] } = {
+  cat: "Extras de la carta ajustada",
+  items: [
+    { name: "Almendras", qty: "150 g", para: "Media tarde de lunes a sábado (25 g)" },
+    { name: "Mantequilla de maní (sin azúcar)", qty: "1 frasco pequeño", para: "Media mañana: lun · mié · jue · vie · sáb" },
+    { name: "Aguacate hass (adicional)", qty: "2", para: "Mar · vie · dom" },
+    { name: "Banano pequeño (adicional)", qty: "3", para: "Media mañana: mar · vie · dom" },
+    { name: "Huevos (adicionales)", qty: "3", para: "Mar desayuno · mié cena · vie desayuno" },
+    { name: "Pan integral (adicional)", qty: "3 tajadas + 1 tostada", para: "Desayunos: lun · mar · mié · vie" },
+    { name: "Arepas pequeñas (adicionales)", qty: "2", para: "Lun cena · jue desayuno" },
+    { name: "Tortillas de maíz (adicionales)", qty: "2", para: "Mar · vie cena" },
+    { name: "Tortilla integral (adicional)", qty: "1", para: "Jue cena" },
+    { name: "Arroz (adicional)", qty: "18 cdas cocido (≈ 1 taza cruda)", para: "Almuerzos: lun · mar · jue" },
+    { name: "Pasta (adicional)", qty: "1 pocillo cocida (≈ 50 g cruda)", para: "Vie almuerzo" },
+    { name: "Quinoa (adicional)", qty: "5 cdas cocida", para: "Dom cena" },
+    { name: "Plátano maduro", qty: "usa otro ¼ del que ya compras", para: "Mié almuerzo" },
+  ],
+};

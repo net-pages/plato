@@ -1,5 +1,7 @@
 import { useEffect } from "react";
-import { MEALS, PLAN } from "./data";
+import { MEALS, type MealId, type Recipe } from "./data";
+
+type Plan = Record<number, Record<MealId, Recipe>>;
 import { dateKey, type Times } from "./store";
 
 const BYDAY = ["SU", "MO", "TU", "WE", "TH", "FR", "SA"];
@@ -7,7 +9,7 @@ const pad = (n: number) => String(n).padStart(2, "0");
 const esc = (s: string) => s.replace(/\\/g, "\\\\").replace(/;/g, "\\;").replace(/,/g, "\\,").replace(/\n/g, "\\n");
 
 /** Archivo .ics con 35 eventos semanales (uno por comida y día), cada uno con alarma a la hora exacta. */
-export function buildICS(times: Times, now = new Date()) {
+export function buildICS(times: Times, PLAN: Plan, now = new Date()) {
   const stamp = `${now.getUTCFullYear()}${pad(now.getUTCMonth() + 1)}${pad(now.getUTCDate())}T${pad(now.getUTCHours())}${pad(now.getUTCMinutes())}00Z`;
   const lines = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Plato//Plan de alimentacion//ES", "CALSCALE:GREGORIAN", "X-WR-CALNAME:Plato · Comidas"];
 
@@ -28,7 +30,7 @@ export function buildICS(times: Times, now = new Date()) {
         "DURATION:PT20M",
         `RRULE:FREQ=WEEKLY;BYDAY=${BYDAY[wd]}`,
         `SUMMARY:${esc(`${m.name} · ${r.title}`)}`,
-        `DESCRIPTION:${esc(r.items.join("\n"))}`,
+        `DESCRIPTION:${esc([...r.items, ...(r.added ?? []).map((a) => `+ ${a}`)].join("\n"))}`,
         "TRANSP:TRANSPARENT",
         "BEGIN:VALARM",
         "ACTION:DISPLAY",
@@ -58,8 +60,8 @@ export function buildICS(times: Times, now = new Date()) {
   return lines.map(fold).join("\r\n");
 }
 
-export function downloadICS(times: Times) {
-  const blob = new Blob([buildICS(times)], { type: "text/calendar;charset=utf-8" });
+export function downloadICS(times: Times, plan: Plan) {
+  const blob = new Blob([buildICS(times, plan)], { type: "text/calendar;charset=utf-8" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
@@ -84,7 +86,7 @@ async function show(title: string, body: string) {
 }
 
 /** Mientras la app esté abierta (o en segundo plano reciente), avisa a la hora de cada comida. */
-export function useMealNotifications(enabled: boolean, times: Times) {
+export function useMealNotifications(enabled: boolean, times: Times, PLAN: Plan) {
   useEffect(() => {
     if (!enabled || !notifySupported() || Notification.permission !== "granted") return;
     const tick = () => {
@@ -100,10 +102,10 @@ export function useMealNotifications(enabled: boolean, times: Times) {
         /* sin almacenamiento */
       }
       const r = PLAN[now.getDay()][meal.id];
-      show(`${meal.name} · ${r.title}`, r.items.join(" · "));
+      show(`${meal.name} · ${r.title}`, [...r.items, ...(r.added ?? []).map((a) => `+ ${a}`)].join(" · "));
     };
     tick();
     const id = setInterval(tick, 20_000);
     return () => clearInterval(id);
-  }, [enabled, times]);
+  }, [enabled, times, PLAN]);
 }

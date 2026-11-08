@@ -79,6 +79,11 @@ export default function Hero({ focus, recipe, times, onReveal, onDone, onOther }
               {it}
             </li>
           ))}
+          {recipe.added?.map((it) => (
+            <li key={`+${it}`} className="rounded-full border border-primary/45 bg-primary/10 px-3 py-1 font-mono text-[11px] text-primary-2 backdrop-blur-sm">
+              + {it}
+            </li>
+          ))}
         </ul>
 
         <div className="mt-7 flex gap-2">

@@ -51,6 +51,11 @@ export default function MealCard({ name, time, recipe, open, onToggleOpen, done,
             {recipe.items.join(" · ")}
             {recipe.kcal ? <span className="whitespace-nowrap text-secondary/80"> · ≈ {recipe.kcal} kcal</span> : null}
           </p>
+          {recipe.added && (
+            <p className={`mt-1 text-[13px] leading-relaxed ${struck ? "text-primary-2/50" : "text-primary-2"}`}>
+              {recipe.added.map((a) => `+ ${a}`).join(" · ")}
+            </p>
+          )}
 
           {entries.length > 0 && (
             <ul className="mt-3 space-y-1.5 rounded-2xl bg-bg/40 px-3 py-2.5">

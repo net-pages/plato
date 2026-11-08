@@ -3,7 +3,7 @@ import { AnimatePresence, motion, useDragControls } from "motion/react";
 import { downloadICS, notifySupported } from "../reminders";
 import { AI_KEY_STORAGE, getKey } from "../ai";
 import { KeySetup } from "./LogSheet";
-import { KCAL_REQUIREMENT } from "../data";
+import { KCAL_REQUIREMENT, planFor } from "../data";
 import { MEALS } from "../data";
 import { DEFAULT_TIMES, type Goals, type Times } from "../store";
 
@@ -13,12 +13,14 @@ interface Props {
   times: Times;
   setTimes: (t: Times) => void;
   goals: Goals;
+  adjusted: boolean;
+  setAdjusted: (v: boolean) => void;
   setGoals: (g: Goals) => void;
   notify: boolean;
   setNotify: (v: boolean) => void;
 }
 
-export default function SettingsSheet({ open, onClose, times, setTimes, notify, setNotify, goals, setGoals }: Props) {
+export default function SettingsSheet({ open, onClose, times, setTimes, notify, setNotify, goals, setGoals, adjusted, setAdjusted }: Props) {
   const [key, setKey] = useState(() => getKey());
   const [msg, setMsg] = useState<string | null>(null);
   const drag = useDragControls();
@@ -109,6 +111,24 @@ export default function SettingsSheet({ open, onClose, times, setTimes, notify, 
                 </span>
               </label>
             </div>
+            <button
+              role="switch"
+              aria-checked={adjusted}
+              onClick={() => setAdjusted(!adjusted)}
+              className="mt-2 flex w-full items-center gap-4 rounded-2xl border border-line bg-bg px-4 py-3.5 text-left"
+            >
+              <span className="min-w-0 flex-1">
+                <span className="block text-[15px] font-semibold">Carta ajustada a {KCAL_REQUIREMENT.toLocaleString("es-CO")} kcal</span>
+                <span className="block text-xs leading-snug text-muted">
+                  {adjusted
+                    ? "Suma porciones extra (marcadas con +) de la lista de intercambios. Apágalo para ver el plan original."
+                    : "Viendo el plan original de Ana María (~1.650–1.870 kcal al día)."}
+                </span>
+              </span>
+              <span className={`relative h-7 w-12 shrink-0 rounded-full transition ${adjusted ? "bg-primary" : "bg-fg/15"}`}>
+                <motion.span layout className={`absolute top-1 h-5 w-5 rounded-full bg-fg ${adjusted ? "right-1" : "left-1"}`} transition={{ type: "spring", bounce: 0.3, duration: 0.35 }} />
+              </span>
+            </button>
             <p className="mt-2 px-1 text-[11px] leading-snug text-muted/80">
               Tu plan indica un requerimiento de {KCAL_REQUIREMENT.toLocaleString("es-CO")} kcal. Si Ana María te da otra meta, cámbiala aquí.
             </p>
@@ -143,7 +163,7 @@ export default function SettingsSheet({ open, onClose, times, setTimes, notify, 
             <h3 className="mt-6 font-display text-3xl italic">Recordatorios</h3>
             <div className="mt-3 space-y-2">
               <button
-                onClick={() => downloadICS(times)}
+                onClick={() => downloadICS(times, planFor(adjusted))}
                 className="flex w-full items-center gap-4 rounded-2xl border border-line bg-bg px-4 py-3.5 text-left transition hover:border-primary/60"
               >
                 <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-primary/15 text-lg">📅</span>

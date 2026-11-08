@@ -14,6 +14,8 @@ export interface Recipe {
   p?: number;
   c?: number;
   g?: number;
+  /** Porciones agregadas por el ajuste a 2.410 kcal (no son del plan original). */
+  added?: string[];
 }
 
 export const MEALS: { id: MealId; name: string; time: string }[] = [
@@ -416,3 +418,74 @@ for (const [day, meals] of Object.entries(NUTRI)) {
 
 /** Requerimiento diario según el plan de la nutricionista. */
 export const KCAL_REQUIREMENT = 2410;
+
+/* ---------- Ajuste para llegar a 2.410 kcal ----------
+   El plan original suma ~1.650–1.870 kcal/día. Para llegar al requerimiento
+   solo se AGREGAN porciones de la misma lista de intercambios del plan
+   (harinas, grasas, frutas, nueces). No se quita ni se cambia nada.
+   La proteína ya es alta (~170 g/día), por eso se suben carbohidratos y grasas. */
+
+type Add = { add: string[]; n: [number, number, number, number] };
+const A = {
+  pan: { t: "1 tajada de pan integral", n: [80, 3.5, 14, 1] },
+  tostada: { t: "1 tostada integral", n: [70, 2, 12, 1] },
+  arepa: { t: "1 arepa pequeña", n: [120, 3, 24, 1] },
+  arroz: { t: "6 cdas de arroz", n: [105, 2, 23, 0] },
+  pasta: { t: "1 pocillo pequeño de pasta", n: [100, 3.5, 20, 0.5] },
+  quinoa: { t: "5 cdas de quinoa", n: [60, 2, 11, 1] },
+  tortillaMaiz: { t: "1 tortilla de maíz (talla M)", n: [60, 1.5, 12, 1] },
+  tortillaInt: { t: "1 tortilla integral (talla M)", n: [110, 3, 18, 3] },
+  maduro: { t: "¼ de plátano maduro", n: [65, 0.5, 17, 0] },
+  banano: { t: "1 banano pequeño", n: [100, 1.2, 25, 0.4] },
+  huevo: { t: "1 huevo", n: [70, 6, 0.5, 5] },
+  hass: { t: "¼ de aguacate hass", n: [65, 1, 3, 6] },
+  aceite: { t: "1 cda de aceite de oliva", n: [90, 0, 0, 10] },
+  mani: { t: "1 cda de mantequilla de maní", n: [95, 4, 3, 8] },
+  almendras: { t: "1 puñado de almendras (25 g)", n: [145, 5, 5, 12.5] },
+} as const;
+type K = keyof typeof A;
+const add = (...keys: K[]): Add => ({
+  add: keys.map((k) => A[k].t),
+  n: keys.reduce(
+    (acc, k) => [acc[0] + A[k].n[0], acc[1] + A[k].n[1], acc[2] + A[k].n[2], acc[3] + A[k].n[3]] as [number, number, number, number],
+    [0, 0, 0, 0] as [number, number, number, number],
+  ),
+});
+
+export const ADJUST: Record<number, Partial<Record<MealId, Add>>> = {
+  1: { desayuno: add("pan"), mm: add("mani"), almuerzo: add("arroz"), mt: add("almendras"), cena: add("arepa") },
+  2: { desayuno: add("tostada", "hass", "huevo"), mm: add("banano"), almuerzo: add("arroz", "aceite"), mt: add("almendras"), cena: add("tortillaMaiz", "hass") },
+  3: { desayuno: add("pan"), mm: add("mani"), almuerzo: add("maduro", "aceite"), mt: add("almendras"), cena: add("huevo") },
+  4: { desayuno: add("arepa"), mm: add("mani"), almuerzo: add("arroz"), mt: add("almendras"), cena: add("tortillaInt") },
+  5: { desayuno: add("pan", "hass", "huevo"), mm: add("banano", "mani"), almuerzo: add("pasta"), mt: add("almendras"), cena: add("tortillaMaiz", "hass") },
+  // sábado: la comida libre de la noche completa el día
+  6: { mm: add("mani"), mt: add("almendras") },
+  // domingo: el postre libre completa el día
+  0: { desayuno: add("hass"), mm: add("banano"), cena: add("quinoa", "aceite") },
+};
+
+function buildAdjusted(): Record<number, Record<MealId, Recipe>> {
+  const out: Record<number, Record<MealId, Recipe>> = {};
+  for (const [day, meals] of Object.entries(PLAN)) {
+    out[Number(day)] = {} as Record<MealId, Recipe>;
+    for (const [id, r] of Object.entries(meals) as [MealId, Recipe][]) {
+      const a = ADJUST[Number(day)][id];
+      out[Number(day)][id] = a
+        ? {
+            ...r,
+            added: a.add,
+            steps: [...r.steps, `Para llegar a tu meta, agrega: ${a.add.join(", ")}.`],
+            kcal: (r.kcal ?? 0) + a.n[0],
+            p: Math.round(((r.p ?? 0) + a.n[1]) * 10) / 10,
+            c: Math.round(((r.c ?? 0) + a.n[2]) * 10) / 10,
+            g: Math.round(((r.g ?? 0) + a.n[3]) * 10) / 10,
+          }
+        : r;
+    }
+  }
+  return out;
+}
+
+export const PLAN_ADJUSTED = buildAdjusted();
+export const planFor = (adjusted: boolean) => (adjusted ? PLAN_ADJUSTED : PLAN);
+export const dayKcal = (plan: Record<MealId, Recipe>) => Object.values(plan).reduce((a, r) => a + (r.kcal ?? 0), 0);

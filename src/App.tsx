@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { DAYS, DAYS_SHORT, KCAL_REQUIREMENT, MEALS, PLAN, type MealId } from "./data";
+import { DAYS, DAYS_SHORT, KCAL_REQUIREMENT, MEALS, dayKcal, planFor, type MealId } from "./data";
 import { DEFAULT_TIMES, dateKey, dayTotals, fmt12, streak, toMinutes, useNow, usePersisted, type Entry, type Goals, type Slot, type Times } from "./store";
 import KcalCard from "./components/KcalCard";
 import WaterCard from "./components/WaterCard";
@@ -32,11 +32,13 @@ export default function App() {
   const [times, setTimes] = usePersisted<Times>("plato.times", DEFAULT_TIMES);
   const [done, setDone] = usePersisted<Record<string, MealId[]>>("plato.done", {});
   const [notify, setNotify] = usePersisted<boolean>("plato.notify", false);
+  const [adjusted, setAdjusted] = usePersisted<boolean>("plato.adjusted", true);
+  const PLAN = planFor(adjusted);
   const [log, setLog] = usePersisted<Record<string, Entry[]>>("plato.log", {});
   const [water, setWater] = usePersisted<Record<string, number>>("plato.water", {});
   const [goals, setGoals] = usePersisted<Goals>("plato.goals", { kcal: KCAL_REQUIREMENT, water: 2500 });
   const [logSheet, setLogSheet] = useState<{ open: boolean; slot: Slot; replaces: boolean }>({ open: false, slot: "extra", replaces: false });
-  useMealNotifications(notify, times);
+  useMealNotifications(notify, times, PLAN);
 
   const isToday = day === today;
   const doneToday = done[todayKey] ?? [];
@@ -158,7 +160,7 @@ export default function App() {
                       <p className="font-mono text-[11px] uppercase tracking-[0.25em] text-muted">Así viene el</p>
                       <BlurText key={day} text={DAYS[day]} animateBy="letters" delay={40} className="font-display text-6xl italic leading-none" />
                       <p className="mt-3 text-sm text-muted">
-                        {MEALS.length} platos · ≈ {Object.values(PLAN[day]).reduce((a, r) => a + r.minutes, 0)} min frente a la estufa
+                        {MEALS.length} platos · ≈ {dayKcal(PLAN[day]).toLocaleString("es-CO")} kcal · ≈ {Object.values(PLAN[day]).reduce((a, r) => a + r.minutes, 0)} min frente a la estufa
                       </p>
                       <button onClick={() => setDay(today)} className="mt-5 text-sm font-semibold text-primary underline-offset-4 hover:underline">
                         ← Volver a hoy
@@ -235,7 +237,7 @@ export default function App() {
             )}
 
             {tab === "prep" && <PrepView />}
-            {tab === "mercado" && <Market />}
+            {tab === "mercado" && <Market adjusted={adjusted} />}
             {tab === "progreso" && <Progress />}
             {tab === "guia" && <GuideView onInstall={() => setInstall(true)} />}
           </motion.main>
@@ -285,7 +287,7 @@ export default function App() {
         planTitle={(slot) => (slot === "extra" ? null : PLAN[today][slot].title)}
         onSave={saveEntries}
       />
-      <SettingsSheet open={settings} onClose={() => setSettings(false)} times={times} setTimes={setTimes} notify={notify} setNotify={setNotify} goals={goals} setGoals={setGoals} />
+      <SettingsSheet open={settings} onClose={() => setSettings(false)} times={times} setTimes={setTimes} notify={notify} setNotify={setNotify} goals={goals} setGoals={setGoals} adjusted={adjusted} setAdjusted={setAdjusted} />
     </div>
   );
 }

@@ -1,14 +1,15 @@
 import { useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { SHOPPING } from "../shopping";
+import { SHOPPING as BASE, SHOPPING_EXTRA } from "../shopping";
 import { usePersisted } from "../store";
 import ClickSpark from "./rb/ClickSpark";
 import CountUp from "./rb/CountUp";
 import { Title } from "./Views";
 
-const TOTAL = SHOPPING.reduce((a, c) => a + c.items.length, 0);
 
-export default function Market() {
+export default function Market({ adjusted }: { adjusted: boolean }) {
+  const SHOPPING = adjusted ? [...BASE, SHOPPING_EXTRA] : BASE;
+  const TOTAL = SHOPPING.reduce((a, c) => a + c.items.length, 0);
   const [got, setGot] = usePersisted<string[]>("plato.market", []);
   const [hideGot, setHideGot] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -36,7 +37,7 @@ export default function Market() {
 
   return (
     <>
-      <Title kicker="Mercado · lunes a domingo" title="Setenta y siete cosas. Ni una más." sub="Sumadas plato por plato desde tu carta. Tacha a medida que llenas el carrito." />
+      <Title kicker="Mercado · lunes a domingo" title={`${TOTAL} cosas. Ni una más.`} sub="Sumadas plato por plato desde tu carta. Tacha a medida que llenas el carrito." />
 
       {/* Progreso de compra */}
       <div className="sticky top-[max(env(safe-area-inset-top),0.75rem)] z-30 -mx-1 mb-5 rounded-3xl border border-line bg-surface/85 px-5 py-4 backdrop-blur-xl">
