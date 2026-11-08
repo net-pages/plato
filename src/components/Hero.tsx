@@ -1,8 +1,7 @@
-import Aurora from "./rb/Aurora";
 import BlurText from "./rb/BlurText";
-import ShinyText from "./rb/ShinyText";
 import ClickSpark from "./rb/ClickSpark";
 import Counter from "./rb/Counter";
+import { OliveSkewer } from "./Olives";
 import type { MealId, Recipe } from "../data";
 import { fmt12, type Times } from "../store";
 
@@ -14,20 +13,18 @@ interface Props {
   onDone: (id: MealId) => void;
 }
 
-// Aurora muy tenue en tonos vino y oliva: movimiento sin estridencia
-const AURA = ["#5a1622", "#8c3443", "#6b6f3a"];
+const card =
+  "relative overflow-hidden rounded-[2rem] border border-line bg-[radial-gradient(90%_70%_at_80%_20%,rgb(110_44_54/0.55),transparent_70%)] bg-surface/70";
 
 export default function Hero({ focus, recipe, times, onReveal, onDone }: Props) {
   if (!focus || !recipe) {
     return (
-      <div className="relative overflow-hidden rounded-[2rem] bg-olive px-6 py-10 text-paper">
-        <div className="pointer-events-none absolute inset-0 opacity-35">
-          <Aurora colorStops={["#4c4f28", "#8a8e52", "#6e1e2c"]} amplitude={0.7} speed={0.4} />
-        </div>
-        <div className="relative">
-          <p className="font-mono text-[11px] uppercase tracking-[0.25em] text-olive-soft">Día completo</p>
-          <BlurText text="Cumpliste las 5 comidas." animateBy="words" className="mt-2 font-display text-5xl italic leading-[0.95]" />
-          <p className="mt-4 max-w-xs text-sm text-paper/80">Ahora a dormir temprano: así se construye el músculo.</p>
+      <div className={`${card} px-6 py-10`}>
+        <OliveSkewer className="sway pointer-events-none absolute -right-6 -top-6 h-[125%] w-36 opacity-90" />
+        <div className="relative max-w-[66%]">
+          <p className="font-mono text-[11px] uppercase tracking-[0.25em] text-secondary">Cocina cerrada</p>
+          <BlurText text="Cinco de cinco." animateBy="words" className="mt-2 font-display text-5xl italic leading-[0.95]" />
+          <p className="mt-4 text-sm leading-relaxed text-muted">El músculo se construye dormido. A la cama antes de las diez.</p>
         </div>
       </div>
     );
@@ -39,74 +36,59 @@ export default function Hero({ focus, recipe, times, onReveal, onDone }: Props) 
   const m = minutesUntil % 60;
 
   return (
-    <div className="relative overflow-hidden rounded-[2rem] bg-wine text-paper shadow-[0_24px_48px_-28px_rgb(110_30_44/0.7)]">
-      <div className="pointer-events-none absolute inset-0 opacity-45">
-        <Aurora colorStops={AURA} amplitude={0.9} blend={0.6} speed={0.35} />
-      </div>
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-wine via-wine/80 to-transparent" />
+    <div className={card}>
+      <OliveSkewer className="sway pointer-events-none absolute -right-5 -top-4 h-[115%] w-32 sm:w-40" />
 
-      <div className="relative px-6 pb-6 pt-16">
-        <div className="flex items-center gap-2">
-          <span className="relative flex h-2 w-2">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-olive-2 opacity-60" />
-            <span className="relative inline-flex h-2 w-2 rounded-full bg-olive-2" />
-          </span>
-          <ShinyText
-            text={upcoming ? `Lo que sigue · ${meal.name}` : `Ahora · ${meal.name}`}
-            color="#f3eee6"
-            shineColor="#c9cc8a"
-            speed={3.2}
-            className="font-mono text-[11px] font-semibold uppercase tracking-[0.25em]"
-          />
+      <div className="relative px-6 pb-6 pt-7">
+        <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.25em] text-secondary">
+          {upcoming ? "En la fila" : "Te toca"} <span className="text-muted">· {meal.name}</span>
+        </p>
+
+        <div className="mt-3 max-w-[70%]">
+          {recipe.free ? (
+            <h2 className="font-display text-[2.9rem] italic leading-[0.92] text-primary-2">{recipe.title}</h2>
+          ) : (
+            <BlurText key={recipe.title} text={recipe.title} animateBy="words" delay={70} className="font-display text-[2.6rem] italic leading-[0.95] sm:text-6xl" />
+          )}
         </div>
 
-        {recipe.free ? (
-          <h2 className="mt-3 font-display text-6xl italic leading-[0.9] text-olive-2">{recipe.title}</h2>
-        ) : (
-          <BlurText
-            key={recipe.title}
-            text={recipe.title}
-            animateBy="words"
-            delay={70}
-            className="mt-3 font-display text-[2.75rem] italic leading-[0.95] sm:text-6xl"
-          />
-        )}
-
-        {upcoming && (
-          <div className="mt-3 flex items-baseline gap-2 font-mono text-sm text-paper/75">
-            <span>{fmt12(times[meal.id])} · en</span>
+        {upcoming ? (
+          <div className="mt-3 flex items-baseline gap-1.5 font-mono text-[13px] text-muted">
+            <span>{fmt12(times[meal.id])} · faltan</span>
             {h > 0 && (
               <>
-                <Counter value={h} fontSize={14} textColor="#c9cc8a" fontWeight={600} />
+                <Counter value={h} fontSize={13} textColor="#d2b48c" fontWeight={600} />
                 <span>h</span>
               </>
             )}
-            <Counter value={m} fontSize={14} textColor="#c9cc8a" fontWeight={600} minDigits={h > 0 ? 2 : 1} />
+            <Counter value={m} fontSize={13} textColor="#d2b48c" fontWeight={600} minDigits={h > 0 ? 2 : 1} />
             <span>min</span>
           </div>
+        ) : (
+          <p className="mt-3 font-mono text-[13px] text-muted">{recipe.free ? "Sin porciones. Sin culpa." : `Desde las ${fmt12(times[meal.id])}`}</p>
         )}
 
-        <ul className="mt-5 flex flex-wrap gap-1.5">
+        <ul className="mt-5 flex max-w-[78%] flex-wrap gap-1.5">
           {recipe.items.map((it) => (
-            <li key={it} className="rounded-full border border-paper/20 px-3 py-1 font-mono text-[11px] text-paper/90">
+            <li key={it} className="rounded-full border border-fg/15 bg-bg/40 px-3 py-1 font-mono text-[11px] text-fg/85 backdrop-blur-sm">
               {it}
             </li>
           ))}
         </ul>
 
-        <div className="mt-6 flex gap-2">
+        <div className="mt-7 flex gap-2">
           <button
             onClick={() => onReveal(meal.id)}
-            className="flex-[1.4] whitespace-nowrap rounded-2xl border border-paper/25 px-4 py-3.5 text-sm font-semibold transition hover:bg-paper/10 active:scale-[0.98]"
+            className="flex-[1.3] whitespace-nowrap rounded-2xl border border-fg/20 bg-bg/60 px-4 py-3.5 text-sm font-semibold backdrop-blur-sm transition hover:bg-bg/80 active:scale-[0.98]"
           >
-            {recipe.free ? "Ver detalles" : `Cómo prepararlo · ${recipe.minutes} min`}
+            {recipe.free ? "¿Qué pido?" : `Ver receta · ${recipe.minutes} min`}
           </button>
-          <ClickSpark sparkColor={["#c9cc8a", "#f3eee6"]} sparkCount={10} sparkRadius={30} className="w-auto! flex-1">
+          <ClickSpark sparkColor={["#b9c47f", "#d2b48c"]} sparkCount={9} sparkRadius={28} className="w-auto! flex-1">
             <button
               onClick={() => onDone(meal.id)}
-              className="h-full w-full whitespace-nowrap rounded-2xl bg-paper px-4 py-3.5 text-sm font-bold text-wine transition hover:bg-paper-2 active:scale-[0.98]"
+              className="h-full w-full whitespace-nowrap rounded-2xl bg-primary px-4 py-3.5 text-sm font-bold text-bg transition hover:bg-primary-2 active:scale-[0.98]"
             >
-              Ya comí ✓
+              Comido ✓
             </button>
           </ClickSpark>
         </div>

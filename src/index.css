@@ -5,23 +5,31 @@
   --font-sans: "Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
 
-  /* Papel crema, tinta, borgoña y oliva */
-  --color-paper: #f3eee6;
-  --color-paper-2: #fbf8f3;
-  --color-paper-3: #eae3d8;
-  --color-line: rgb(42 29 32 / 0.11);
-  --color-ink: #2a1d20;
-  --color-mute: #75686a;
-  --color-wine: #6e1e2c;
-  --color-wine-2: #8c3443;
-  --color-olive: #5f6334;
-  --color-olive-2: #c9cc8a;
-  --color-olive-soft: #e6e4cf;
+  /* Bodegón: vino casi negro, aceituna y palillo de madera */
+  --color-bg: #241114;
+  --color-surface: #2f171b;
+  --color-surface-2: #3a1e23;
+  --color-line: rgb(237 227 211 / 0.09);
+  --color-fg: #ede3d3;
+  --color-muted: #a99690;
+  --color-primary: #9aaa5c;
+  --color-primary-2: #b9c47f;
+  --color-secondary: #d2b48c;
+  --color-secondary-2: #e5d1b2;
+  --color-secondary-soft: #e5d1b2;
+  --color-olive-deep: #2f4519;
 }
 
-html, body, #root { background: var(--color-paper); }
+html, body, #root { background-color: var(--color-bg); }
+/* luz de bodegón: un foco cálido arriba y viñeta hacia los bordes */
 body {
-  color: var(--color-ink);
+  background-image:
+    radial-gradient(120% 70% at 70% 0%, rgb(92 38 46 / 0.55), transparent 60%),
+    radial-gradient(140% 90% at 50% 120%, rgb(10 3 5 / 0.7), transparent 60%);
+  background-attachment: fixed;
+}
+body {
+  color: var(--color-fg);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -webkit-tap-highlight-color: transparent;
@@ -29,13 +37,23 @@ body {
 }
 
 /* grano de película sobre todo */
+.grain::before,
 .grain::after {
   content: "";
   position: fixed;
-  inset: -50%;
+  inset: 0;
   pointer-events: none;
   z-index: 60;
-  opacity: 0.045;
+}
+/* pinceladas horizontales, como el fondo pintado */
+.grain::before {
+  opacity: 0.09;
+  mix-blend-mode: soft-light;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='600' height='600'><filter id='b'><feTurbulence type='fractalNoise' baseFrequency='.004 .06' numOctaves='4' seed='7'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 .9  0 0 0 0 .85  0 0 0 1.4 -.35'/></filter><rect width='100%' height='100%' filter='url(%23b)'/></svg>");
+}
+/* grano fino de lienzo */
+.grain::after {
+  opacity: 0.07;
   background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
 }
 
@@ -51,3 +69,8 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .rise { animation: none; }
 }
+
+/* vaivén lento de la brocheta, como colgada */
+@keyframes sway { 0%, 100% { transform: rotate(-1.2deg); } 50% { transform: rotate(1.2deg); } }
+.sway { transform-origin: 50% 0%; animation: sway 9s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) { .sway { animation: none; } }

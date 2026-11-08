@@ -8,6 +8,7 @@ import { GuideView, PrepView } from "./components/Views";
 import Market from "./components/Market";
 import Progress from "./components/Progress";
 import { useMealNotifications } from "./reminders";
+import { InstallBanner, InstallSheet } from "./components/Install";
 import SettingsSheet from "./components/SettingsSheet";
 import CountUp from "./components/rb/CountUp";
 import BlurText from "./components/rb/BlurText";
@@ -24,6 +25,7 @@ export default function App() {
   const [day, setDay] = useState(today);
   const [open, setOpen] = useState<MealId | null>(null);
   const [settings, setSettings] = useState(false);
+  const [install, setInstall] = useState(false);
   const [times, setTimes] = usePersisted<Times>("plato.times", DEFAULT_TIMES);
   const [done, setDone] = usePersisted<Record<string, MealId[]>>("plato.done", {});
   const [notify, setNotify] = usePersisted<boolean>("plato.notify", false);
@@ -69,15 +71,15 @@ export default function App() {
         {/* Encabezado */}
         <header className="rise flex items-end justify-between pt-2">
           <div>
-            <p className="font-mono text-[11px] uppercase tracking-[0.25em] text-mute">{dateLabel}</p>
+            <p className="font-mono text-[11px] uppercase tracking-[0.25em] text-muted">{dateLabel}</p>
             <h1 className="font-display text-5xl italic leading-none tracking-tight">
-              Plato<span className="text-wine">.</span>
+              Plato<span className="text-primary">.</span>
             </h1>
           </div>
           <button
             onClick={() => setSettings(true)}
             aria-label="Horarios y recordatorios"
-            className="grid h-11 w-11 place-items-center rounded-full border border-line bg-paper-2 text-mute transition hover:text-ink active:scale-95"
+            className="grid h-11 w-11 place-items-center rounded-full border border-line bg-surface text-muted transition hover:text-fg active:scale-95"
           >
             <ClockIcon />
           </button>
@@ -107,12 +109,12 @@ export default function App() {
                         aria-pressed={active}
                         aria-label={DAYS[d]}
                         className={`relative flex h-14 flex-col items-center justify-center rounded-2xl border text-sm font-semibold transition ${
-                          active ? "border-transparent text-paper" : "border-line text-mute hover:text-ink"
+                          active ? "border-transparent text-bg" : "border-line text-muted hover:text-fg"
                         }`}
                       >
-                        {active && <motion.span layoutId="day-pill" className="absolute inset-0 -z-0 rounded-2xl bg-ink" transition={{ type: "spring", bounce: 0.25, duration: 0.5 }} />}
+                        {active && <motion.span layoutId="day-pill" className="absolute inset-0 -z-0 rounded-2xl bg-fg" transition={{ type: "spring", bounce: 0.25, duration: 0.5 }} />}
                         <span className="relative">{DAYS_SHORT[d]}</span>
-                        {d === today && <span className={`relative mt-1 h-1 w-1 rounded-full ${active ? "bg-wine" : "bg-wine/80"}`} />}
+                        {d === today && <span className={`relative mt-1 h-1 w-1 rounded-full ${active ? "bg-primary" : "bg-primary/80"}`} />}
                       </button>
                     );
                   })}
@@ -123,36 +125,38 @@ export default function App() {
                   {isToday ? (
                     <Hero focus={focus} times={times} recipe={focus ? PLAN[day][focus.meal.id] : null} onReveal={reveal} onDone={toggle} />
                   ) : (
-                    <div className="rounded-[2rem] border border-line bg-paper-2 px-6 py-8">
-                      <p className="font-mono text-[11px] uppercase tracking-[0.25em] text-mute">Vista previa</p>
+                    <div className="rounded-[2rem] border border-line bg-surface px-6 py-8">
+                      <p className="font-mono text-[11px] uppercase tracking-[0.25em] text-muted">Así viene el</p>
                       <BlurText key={day} text={DAYS[day]} animateBy="letters" delay={40} className="font-display text-6xl italic leading-none" />
-                      <p className="mt-3 text-sm text-mute">
-                        {MEALS.length} comidas · ≈ {Object.values(PLAN[day]).reduce((a, r) => a + r.minutes, 0)} min de cocina en total
+                      <p className="mt-3 text-sm text-muted">
+                        {MEALS.length} platos · ≈ {Object.values(PLAN[day]).reduce((a, r) => a + r.minutes, 0)} min frente a la estufa
                       </p>
-                      <button onClick={() => setDay(today)} className="mt-5 text-sm font-semibold text-wine underline-offset-4 hover:underline">
-                        Volver a hoy →
+                      <button onClick={() => setDay(today)} className="mt-5 text-sm font-semibold text-primary underline-offset-4 hover:underline">
+                        ← Volver a hoy
                       </button>
                     </div>
                   )}
                 </section>
 
+                {isToday && <InstallBanner onOpen={() => setInstall(true)} />}
+
                 {/* Progreso */}
                 {isToday && (
                   <section className="mt-4 grid grid-cols-2 gap-3">
-                    <Stat label="Comidas de hoy">
+                    <Stat label="Platos de hoy">
                       <CountUp key={doneToday.length} from={Math.max(0, doneToday.length - 1)} to={doneToday.length} duration={0.6} trigger="load" />
-                      <span className="text-mute">/{MEALS.length}</span>
+                      <span className="text-muted">/{MEALS.length}</span>
                     </Stat>
-                    <Stat label={s === 1 ? "Día seguido" : "Días seguidos"}>
+                    <Stat label={s === 1 ? "Día sin fallar" : "Días sin fallar"}>
                       <CountUp to={s} duration={1.2} trigger="load" />
-                      <span className="ml-1 text-wine">●</span>
+                      <span className="ml-1 text-primary">●</span>
                     </Stat>
                   </section>
                 )}
 
                 {/* Línea de tiempo */}
                 <section className="mt-8">
-                  <h2 className="mb-3 font-mono text-[11px] uppercase tracking-[0.25em] text-mute">El día completo</h2>
+                  <h2 className="mb-3 font-mono text-[11px] uppercase tracking-[0.25em] text-muted">{isToday ? "La carta de hoy" : `La carta del ${DAYS[day].toLowerCase()}`}</h2>
                   <ol className="relative space-y-3">
                     {meals.map((m, i) => (
                       <li key={`${day}-${m.id}`} id={`meal-${m.id}`} className="rise scroll-mt-6" style={{ animationDelay: `${i * 60}ms` }}>
@@ -177,21 +181,21 @@ export default function App() {
             {tab === "prep" && <PrepView />}
             {tab === "mercado" && <Market />}
             {tab === "progreso" && <Progress />}
-            {tab === "guia" && <GuideView />}
+            {tab === "guia" && <GuideView onInstall={() => setInstall(true)} />}
           </motion.main>
         </AnimatePresence>
       </div>
 
       {/* Navegación inferior */}
       <nav className="pb-safe fixed inset-x-0 bottom-0 z-40 px-4" aria-label="Secciones">
-        <div className="mx-auto flex max-w-xl gap-1 rounded-[1.75rem] border border-line bg-paper-2/80 p-1.5 shadow-[0_12px_32px_-16px_rgb(42_29_32/0.35)] backdrop-blur-xl">
+        <div className="mx-auto flex max-w-xl gap-1 rounded-[1.75rem] border border-line bg-surface/80 p-1.5 shadow-[0_12px_32px_-16px_rgb(0_0_0/0.6)] backdrop-blur-xl">
           {(
             [
               ["hoy", "Hoy", <SunIcon key="i" />],
               ["prep", "Prep", <PotIcon key="i" />],
               ["mercado", "Mercado", <CartIcon key="i" />],
-              ["progreso", "Progreso", <ChartIcon key="i" />],
-              ["guia", "Guía", <LeafIcon key="i" />],
+              ["progreso", "Báscula", <ChartIcon key="i" />],
+              ["guia", "Reglas", <LeafIcon key="i" />],
             ] as const
           ).map(([id, label, icon]) => {
             const active = tab === id;
@@ -204,10 +208,10 @@ export default function App() {
                 }}
                 aria-current={active ? "page" : undefined}
                 className={`relative flex min-w-0 flex-1 flex-col items-center gap-0.5 rounded-[1.35rem] py-2 text-[10.5px] font-semibold transition ${
-                  active ? "text-paper" : "text-mute hover:text-ink"
+                  active ? "text-bg" : "text-muted hover:text-fg"
                 }`}
               >
-                {active && <motion.span layoutId="tab-pill" className="absolute inset-0 rounded-[1.35rem] bg-wine" transition={{ type: "spring", bounce: 0.2, duration: 0.45 }} />}
+                {active && <motion.span layoutId="tab-pill" className="absolute inset-0 rounded-[1.35rem] bg-primary" transition={{ type: "spring", bounce: 0.2, duration: 0.45 }} />}
                 <span className="relative">{icon}</span>
                 <span className="relative">{label}</span>
               </button>
@@ -216,6 +220,7 @@ export default function App() {
         </div>
       </nav>
 
+      <InstallSheet open={install} onClose={() => setInstall(false)} />
       <SettingsSheet open={settings} onClose={() => setSettings(false)} times={times} setTimes={setTimes} notify={notify} setNotify={setNotify} />
     </div>
   );
@@ -223,9 +228,9 @@ export default function App() {
 
 function Stat({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div className="rounded-3xl border border-line bg-paper-2 px-5 py-4">
+    <div className="rounded-3xl border border-line bg-surface px-5 py-4">
       <div className="font-display text-4xl leading-none">{children}</div>
-      <p className="mt-1.5 font-mono text-[10px] uppercase tracking-[0.2em] text-mute">{label}</p>
+      <p className="mt-1.5 font-mono text-[10px] uppercase tracking-[0.2em] text-muted">{label}</p>
     </div>
   );
 }

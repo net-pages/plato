@@ -43,22 +43,22 @@ export default function Progress() {
 
   return (
     <>
-      <Title kicker="Progreso" title="Cada kilo, a su tiempo." sub="Pésate en ayunas, el mismo día de la semana. La tendencia importa más que un número aislado." />
+      <Title kicker="La báscula" title="Sin prisa, pero sin pausa." sub="Pésate en ayunas, el mismo día y en la misma báscula. Un dato suelto miente; la línea no." />
 
       {/* Número principal */}
-      <section className="rounded-[2rem] border border-line bg-paper-2 px-6 py-6">
-        <p className="font-mono text-[11px] uppercase tracking-[0.25em] text-mute">Peso actual</p>
+      <section className="rounded-[2rem] border border-line bg-surface px-6 py-6">
+        <p className="font-mono text-[11px] uppercase tracking-[0.25em] text-muted">Hoy pesas</p>
         {last ? (
           <>
             <p className="mt-1 font-display text-7xl leading-none">
               <CountUp key={last.kg} to={Math.trunc(last.kg)} duration={1} trigger="load" />
               <span>,{Math.round((last.kg % 1) * 10)}</span>
-              <span className="ml-1 text-3xl text-mute">kg</span>
+              <span className="ml-1 text-3xl text-muted">kg</span>
             </p>
-            <div className="mt-3 flex flex-wrap gap-x-5 gap-y-1 text-sm text-mute">
+            <div className="mt-3 flex flex-wrap gap-x-5 gap-y-1 text-sm text-muted">
               {delta !== null && (
                 <span>
-                  <span className="font-semibold text-ink">
+                  <span className="font-semibold text-fg">
                     {delta > 0 ? "+" : ""}
                     {delta.toLocaleString("es-CO")} kg
                   </span>{" "}
@@ -67,7 +67,7 @@ export default function Progress() {
               )}
               {weekly !== null && (
                 <span>
-                  <span className="font-semibold text-ink">
+                  <span className="font-semibold text-fg">
                     {weekly > 0 ? "+" : ""}
                     {weekly.toLocaleString("es-CO")} kg
                   </span>{" "}
@@ -77,16 +77,16 @@ export default function Progress() {
             </div>
           </>
         ) : (
-          <p className="mt-2 text-sm text-mute">Aún no hay registros. Agrega el primero abajo.</p>
+          <p className="mt-2 text-sm text-muted">La báscula está esperando tu primer dato.</p>
         )}
       </section>
 
       {/* Gráfica */}
       {sorted.length >= 2 && (
-        <section className="mt-4 rounded-[2rem] border border-line bg-paper-2 px-4 pb-4 pt-5">
+        <section className="mt-4 rounded-[2rem] border border-line bg-surface px-4 pb-4 pt-5">
           <div className="mb-2 flex items-center justify-between px-2">
-            <h2 className="font-mono text-[11px] uppercase tracking-[0.25em] text-mute">Peso (kg) en el tiempo</h2>
-            <button onClick={() => setShowTable((s) => !s)} className="font-mono text-[10px] uppercase tracking-[0.15em] text-olive hover:text-ink">
+            <h2 className="font-mono text-[11px] uppercase tracking-[0.25em] text-muted">Peso (kg) en el tiempo</h2>
+            <button onClick={() => setShowTable((s) => !s)} className="font-mono text-[10px] uppercase tracking-[0.15em] text-secondary hover:text-fg">
               {showTable ? "Ver gráfica" : "Ver tabla"}
             </button>
           </div>
@@ -104,29 +104,29 @@ export default function Progress() {
             add({ date: today, kg: 68 });
             setKg("68");
           }}
-          className="mt-4 w-full rounded-[1.5rem] border border-dashed border-wine/40 px-5 py-4 text-left text-sm text-ink/80 transition hover:border-wine"
+          className="mt-4 w-full rounded-[1.5rem] border border-dashed border-primary/40 px-5 py-4 text-left text-sm text-fg/80 transition hover:border-primary"
         >
-          <span className="font-semibold text-wine">Usar mi punto de partida →</span>
+          <span className="font-semibold text-primary">Usar mi punto de partida →</span>
           <br />
           64 kg hace 2 meses y 68 kg hoy (lo que me contaste). Puedes editarlo después en la tabla.
         </button>
       )}
 
       {/* Formulario */}
-      <form onSubmit={submit} className="mt-4 rounded-[2rem] border border-line bg-paper-2 px-5 py-5">
-        <p className="mb-3 font-mono text-[11px] uppercase tracking-[0.25em] text-mute">Nuevo registro</p>
+      <form onSubmit={submit} className="mt-4 rounded-[2rem] border border-line bg-surface px-5 py-5">
+        <p className="mb-3 font-mono text-[11px] uppercase tracking-[0.25em] text-muted">Anotar peso</p>
         <div className="flex gap-2">
           <label className="flex-1">
             <span className="sr-only">Peso en kg</span>
-            <div className="flex items-baseline rounded-2xl border border-line bg-paper px-4 py-3 focus-within:border-wine">
+            <div className="flex items-baseline rounded-2xl border border-line bg-bg px-4 py-3 focus-within:border-primary">
               <input
                 inputMode="decimal"
                 placeholder="68,0"
                 value={kg}
                 onChange={(e) => setKg(e.target.value)}
-                className="w-full min-w-0 bg-transparent font-display text-3xl leading-none text-ink placeholder:text-ink/20 focus:outline-none"
+                className="w-full min-w-0 bg-transparent font-display text-3xl leading-none text-fg placeholder:text-fg/20 focus:outline-none"
               />
-              <span className="font-mono text-xs text-mute">kg</span>
+              <span className="font-mono text-xs text-muted">kg</span>
             </div>
           </label>
           <label className="w-[9.5rem] shrink-0">
@@ -136,13 +136,13 @@ export default function Progress() {
               value={date}
               max={today}
               onChange={(e) => setDate(e.target.value)}
-              className="h-full w-full rounded-2xl border border-line bg-paper px-3 font-mono text-xs text-ink [color-scheme:light] focus:border-wine focus:outline-none"
+              className="h-full w-full rounded-2xl border border-line bg-bg px-3 font-mono text-xs text-fg [color-scheme:dark] focus:border-primary focus:outline-none"
             />
           </label>
         </div>
-        <ClickSpark sparkColor={["#5f6334", "#6e1e2c"]} sparkCount={10} sparkRadius={28} className="mt-3">
-          <button type="submit" className="w-full rounded-2xl bg-wine py-3.5 text-sm font-bold text-paper transition hover:brightness-110 active:scale-[0.99]">
-            Guardar peso
+        <ClickSpark sparkColor={["#b9c47f", "#d2b48c"]} sparkCount={10} sparkRadius={28} className="mt-3">
+          <button type="submit" className="w-full rounded-2xl bg-primary py-3.5 text-sm font-bold text-bg transition hover:brightness-110 active:scale-[0.99]">
+            Anotar
           </button>
         </ClickSpark>
       </form>
@@ -201,25 +201,25 @@ function WeightChart({ data }: { data: WeighIn[] }) {
       >
         <defs>
           <linearGradient id="wfill" x1="0" x2="0" y1="0" y2="1">
-            <stop offset="0%" stopColor="#6e1e2c" stopOpacity="0.12" />
-            <stop offset="100%" stopColor="#6e1e2c" stopOpacity="0" />
+            <stop offset="0%" stopColor="#b9c47f" stopOpacity="0.18" />
+            <stop offset="100%" stopColor="#b9c47f" stopOpacity="0" />
           </linearGradient>
         </defs>
 
         {/* rejilla y eje y (recesivos) */}
         {ticks.map((v) => (
           <g key={v}>
-            <line x1={pad.l} x2={W - pad.r} y1={y(v)} y2={y(v)} stroke="#2a1d20" strokeOpacity="0.08" />
-            <text x={pad.l - 8} y={y(v)} dy="0.32em" textAnchor="end" className="fill-mute font-mono text-[9px]">
+            <line x1={pad.l} x2={W - pad.r} y1={y(v)} y2={y(v)} stroke="#ede3d3" strokeOpacity="0.08" />
+            <text x={pad.l - 8} y={y(v)} dy="0.32em" textAnchor="end" className="fill-muted font-mono text-[9px]">
               {v}
             </text>
           </g>
         ))}
         {/* eje x: primera y última fecha */}
-        <text x={x(data[0].date)} y={H - 6} textAnchor="start" className="fill-mute font-mono text-[9px]">
+        <text x={x(data[0].date)} y={H - 6} textAnchor="start" className="fill-muted font-mono text-[9px]">
           {short(data[0].date)}
         </text>
-        <text x={x(data[data.length - 1].date)} y={H - 6} textAnchor="end" className="fill-mute font-mono text-[9px]">
+        <text x={x(data[data.length - 1].date)} y={H - 6} textAnchor="end" className="fill-muted font-mono text-[9px]">
           {short(data[data.length - 1].date)}
         </text>
 
@@ -227,7 +227,7 @@ function WeightChart({ data }: { data: WeighIn[] }) {
         <motion.path
           d={path}
           fill="none"
-          stroke="#6e1e2c"
+          stroke="#b9c47f"
           strokeWidth={2}
           strokeLinejoin="round"
           strokeLinecap="round"
@@ -237,7 +237,7 @@ function WeightChart({ data }: { data: WeighIn[] }) {
         />
 
         {/* crosshair */}
-        {h && <line x1={x(h.date)} x2={x(h.date)} y1={pad.t} y2={H - pad.b} stroke="#2a1d20" strokeOpacity="0.3" strokeDasharray="3 3" />}
+        {h && <line x1={x(h.date)} x2={x(h.date)} y1={pad.t} y2={H - pad.b} stroke="#ede3d3" strokeOpacity="0.3" strokeDasharray="3 3" />}
 
         {data.map((d, i) => (
           <circle
@@ -245,14 +245,14 @@ function WeightChart({ data }: { data: WeighIn[] }) {
             cx={x(d.date)}
             cy={y(d.kg)}
             r={hover === i ? 6 : showDotLabels || i === data.length - 1 ? 4 : 0}
-            fill="#6e1e2c"
-            stroke="#fbf8f3"
+            fill="#b9c47f"
+            stroke="#2f171b"
             strokeWidth={2}
           />
         ))}
         {/* etiqueta directa solo en el último punto */}
         {!h && (
-          <text x={x(data[data.length - 1].date) - 8} y={y(data[data.length - 1].kg) - 10} textAnchor="end" className="fill-ink font-mono text-[10px] font-semibold">
+          <text x={x(data[data.length - 1].date) - 8} y={y(data[data.length - 1].kg) - 10} textAnchor="end" className="fill-fg font-mono text-[10px] font-semibold">
             {data[data.length - 1].kg} kg
           </text>
         )}
@@ -264,14 +264,14 @@ function WeightChart({ data }: { data: WeighIn[] }) {
             initial={{ opacity: 0, y: 4 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
-            className="pointer-events-none absolute top-0 rounded-xl border border-line bg-paper px-3 py-2 shadow-xl"
+            className="pointer-events-none absolute top-0 rounded-xl border border-line bg-bg px-3 py-2 shadow-xl"
             style={{
               left: `${(x(h.date) / W) * 100}%`,
               transform: `translateX(${x(h.date) / W > 0.6 ? "-105%" : "5%"})`,
             }}
           >
-            <p className="font-mono text-[10px] uppercase tracking-[0.15em] text-mute">{short(h.date)}</p>
-            <p className="font-display text-2xl leading-none text-ink">{h.kg.toLocaleString("es-CO")} kg</p>
+            <p className="font-mono text-[10px] uppercase tracking-[0.15em] text-muted">{short(h.date)}</p>
+            <p className="font-display text-2xl leading-none text-fg">{h.kg.toLocaleString("es-CO")} kg</p>
           </motion.div>
         )}
       </AnimatePresence>
@@ -283,7 +283,7 @@ function WeightTable({ data, onRemove }: { data: WeighIn[]; onRemove: (d: string
   return (
     <table className="w-full text-sm">
       <thead>
-        <tr className="text-left font-mono text-[10px] uppercase tracking-[0.15em] text-mute">
+        <tr className="text-left font-mono text-[10px] uppercase tracking-[0.15em] text-muted">
           <th className="px-2 py-2 font-normal">Fecha</th>
           <th className="px-2 py-2 text-right font-normal">Peso</th>
           <th className="px-2 py-2 text-right font-normal">Cambio</th>
@@ -298,9 +298,9 @@ function WeightTable({ data, onRemove }: { data: WeighIn[]; onRemove: (d: string
             <tr key={d.date} className="border-t border-line">
               <td className="px-2 py-2.5">{short(d.date)}</td>
               <td className="px-2 py-2.5 text-right font-mono">{d.kg.toLocaleString("es-CO")} kg</td>
-              <td className="px-2 py-2.5 text-right font-mono text-mute">{diff === null ? "—" : `${diff > 0 ? "+" : ""}${diff.toLocaleString("es-CO")}`}</td>
+              <td className="px-2 py-2.5 text-right font-mono text-muted">{diff === null ? "—" : `${diff > 0 ? "+" : ""}${diff.toLocaleString("es-CO")}`}</td>
               <td className="px-1 text-right">
-                <button onClick={() => onRemove(d.date)} aria-label={`Borrar registro del ${short(d.date)}`} className="px-1 text-mute hover:text-wine">
+                <button onClick={() => onRemove(d.date)} aria-label={`Borrar registro del ${short(d.date)}`} className="px-1 text-muted hover:text-primary">
                   ×
                 </button>
               </td>
