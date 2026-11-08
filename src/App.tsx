@@ -71,13 +71,13 @@ export default function App() {
           <div>
             <p className="font-mono text-[11px] uppercase tracking-[0.25em] text-mute">{dateLabel}</p>
             <h1 className="font-display text-5xl italic leading-none tracking-tight">
-              Plato<span className="text-tang">.</span>
+              Plato<span className="text-wine">.</span>
             </h1>
           </div>
           <button
             onClick={() => setSettings(true)}
             aria-label="Horarios y recordatorios"
-            className="grid h-11 w-11 place-items-center rounded-full border border-line bg-ink-2 text-mute transition hover:text-cream active:scale-95"
+            className="grid h-11 w-11 place-items-center rounded-full border border-line bg-paper-2 text-mute transition hover:text-ink active:scale-95"
           >
             <ClockIcon />
           </button>
@@ -107,12 +107,12 @@ export default function App() {
                         aria-pressed={active}
                         aria-label={DAYS[d]}
                         className={`relative flex h-14 flex-col items-center justify-center rounded-2xl border text-sm font-semibold transition ${
-                          active ? "border-transparent text-ink" : "border-line text-mute hover:text-cream"
+                          active ? "border-transparent text-paper" : "border-line text-mute hover:text-ink"
                         }`}
                       >
-                        {active && <motion.span layoutId="day-pill" className="absolute inset-0 -z-0 rounded-2xl bg-cream" transition={{ type: "spring", bounce: 0.25, duration: 0.5 }} />}
+                        {active && <motion.span layoutId="day-pill" className="absolute inset-0 -z-0 rounded-2xl bg-ink" transition={{ type: "spring", bounce: 0.25, duration: 0.5 }} />}
                         <span className="relative">{DAYS_SHORT[d]}</span>
-                        {d === today && <span className={`relative mt-1 h-1 w-1 rounded-full ${active ? "bg-tang" : "bg-tang/80"}`} />}
+                        {d === today && <span className={`relative mt-1 h-1 w-1 rounded-full ${active ? "bg-wine" : "bg-wine/80"}`} />}
                       </button>
                     );
                   })}
@@ -123,13 +123,13 @@ export default function App() {
                   {isToday ? (
                     <Hero focus={focus} times={times} recipe={focus ? PLAN[day][focus.meal.id] : null} onReveal={reveal} onDone={toggle} />
                   ) : (
-                    <div className="rounded-[2rem] border border-line bg-ink-2 px-6 py-8">
+                    <div className="rounded-[2rem] border border-line bg-paper-2 px-6 py-8">
                       <p className="font-mono text-[11px] uppercase tracking-[0.25em] text-mute">Vista previa</p>
                       <BlurText key={day} text={DAYS[day]} animateBy="letters" delay={40} className="font-display text-6xl italic leading-none" />
                       <p className="mt-3 text-sm text-mute">
                         {MEALS.length} comidas · ≈ {Object.values(PLAN[day]).reduce((a, r) => a + r.minutes, 0)} min de cocina en total
                       </p>
-                      <button onClick={() => setDay(today)} className="mt-5 text-sm font-semibold text-tang underline-offset-4 hover:underline">
+                      <button onClick={() => setDay(today)} className="mt-5 text-sm font-semibold text-wine underline-offset-4 hover:underline">
                         Volver a hoy →
                       </button>
                     </div>
@@ -145,7 +145,7 @@ export default function App() {
                     </Stat>
                     <Stat label={s === 1 ? "Día seguido" : "Días seguidos"}>
                       <CountUp to={s} duration={1.2} trigger="load" />
-                      <span className="ml-1 text-tang">●</span>
+                      <span className="ml-1 text-wine">●</span>
                     </Stat>
                   </section>
                 )}
@@ -184,7 +184,7 @@ export default function App() {
 
       {/* Navegación inferior */}
       <nav className="pb-safe fixed inset-x-0 bottom-0 z-40 px-4" aria-label="Secciones">
-        <div className="mx-auto flex max-w-xl gap-1 rounded-[1.75rem] border border-line bg-ink-2/80 p-1.5 shadow-2xl shadow-black/50 backdrop-blur-xl">
+        <div className="mx-auto flex max-w-xl gap-1 rounded-[1.75rem] border border-line bg-paper-2/80 p-1.5 shadow-[0_12px_32px_-16px_rgb(42_29_32/0.35)] backdrop-blur-xl">
           {(
             [
               ["hoy", "Hoy", <SunIcon key="i" />],
@@ -204,10 +204,10 @@ export default function App() {
                 }}
                 aria-current={active ? "page" : undefined}
                 className={`relative flex min-w-0 flex-1 flex-col items-center gap-0.5 rounded-[1.35rem] py-2 text-[10.5px] font-semibold transition ${
-                  active ? "text-ink" : "text-mute hover:text-cream"
+                  active ? "text-paper" : "text-mute hover:text-ink"
                 }`}
               >
-                {active && <motion.span layoutId="tab-pill" className="absolute inset-0 rounded-[1.35rem] bg-tang" transition={{ type: "spring", bounce: 0.2, duration: 0.45 }} />}
+                {active && <motion.span layoutId="tab-pill" className="absolute inset-0 rounded-[1.35rem] bg-wine" transition={{ type: "spring", bounce: 0.2, duration: 0.45 }} />}
                 <span className="relative">{icon}</span>
                 <span className="relative">{label}</span>
               </button>
@@ -223,7 +223,7 @@ export default function App() {
 
 function Stat({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div className="rounded-3xl border border-line bg-ink-2 px-5 py-4">
+    <div className="rounded-3xl border border-line bg-paper-2 px-5 py-4">
       <div className="font-display text-4xl leading-none">{children}</div>
       <p className="mt-1.5 font-mono text-[10px] uppercase tracking-[0.2em] text-mute">{label}</p>
     </div>

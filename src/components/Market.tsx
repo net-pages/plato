@@ -39,7 +39,7 @@ export default function Market() {
       <Title kicker="Mercado · 1 semana" title="Todo lo que necesitas, sumado." sub="Calculado comida por comida desde tu plan. Ve marcando mientras compras." />
 
       {/* Progreso de compra */}
-      <div className="sticky top-[max(env(safe-area-inset-top),0.75rem)] z-30 -mx-1 mb-5 rounded-3xl border border-line bg-ink-2/85 px-5 py-4 backdrop-blur-xl">
+      <div className="sticky top-[max(env(safe-area-inset-top),0.75rem)] z-30 -mx-1 mb-5 rounded-3xl border border-line bg-paper-2/85 px-5 py-4 backdrop-blur-xl">
         <div className="flex items-end justify-between">
           <p className="font-display text-4xl leading-none">
             <CountUp key={got.length} from={Math.max(0, got.length - 1)} to={got.length} duration={0.5} trigger="load" />
@@ -50,18 +50,18 @@ export default function Market() {
               onClick={() => setHideGot((h) => !h)}
               aria-pressed={hideGot}
               className={`rounded-full border px-3 py-1.5 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] transition ${
-                hideGot ? "border-sage bg-sage text-ink" : "border-line text-mute hover:text-cream"
+                hideGot ? "border-olive bg-olive text-paper" : "border-line text-mute hover:text-ink"
               }`}
             >
               Ocultar lo comprado
             </button>
-            <button onClick={share} className="rounded-full bg-tang px-3 py-1.5 font-mono text-[10px] font-bold uppercase tracking-[0.15em] text-ink">
+            <button onClick={share} className="rounded-full bg-wine px-3 py-1.5 font-mono text-[10px] font-bold uppercase tracking-[0.15em] text-paper">
               {copied ? "Copiado ✓" : "Compartir"}
             </button>
           </div>
         </div>
-        <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-cream/10" role="progressbar" aria-valuenow={got.length} aria-valuemax={TOTAL} aria-label="Productos comprados">
-          <motion.div className="h-full rounded-full bg-gradient-to-r from-tang to-ember" animate={{ width: `${pct * 100}%` }} transition={{ type: "spring", bounce: 0.2 }} />
+        <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-ink/10" role="progressbar" aria-valuenow={got.length} aria-valuemax={TOTAL} aria-label="Productos comprados">
+          <motion.div className="h-full rounded-full bg-gradient-to-r from-wine to-olive" animate={{ width: `${pct * 100}%` }} transition={{ type: "spring", bounce: 0.2 }} />
         </div>
       </div>
 
@@ -73,12 +73,12 @@ export default function Market() {
           return (
             <section key={c.cat}>
               <h2 className="mb-2 flex items-baseline justify-between">
-                <span className={`font-display text-3xl italic ${doneCat ? "text-sage" : ""}`}>{c.cat}</span>
+                <span className={`font-display text-3xl italic ${doneCat ? "text-olive" : ""}`}>{c.cat}</span>
                 <span className="font-mono text-[11px] text-mute">
                   {c.items.filter((i) => got.includes(i.name)).length}/{c.items.length}
                 </span>
               </h2>
-              <ul className="overflow-hidden rounded-[1.5rem] border border-line bg-ink-2">
+              <ul className="overflow-hidden rounded-[1.5rem] border border-line bg-paper-2">
                 <AnimatePresence initial={false}>
                   {items.map((i) => {
                     const on = got.includes(i.name);
@@ -89,20 +89,20 @@ export default function Market() {
                         exit={{ opacity: 0, height: 0 }}
                         className="border-b border-line last:border-b-0"
                       >
-                        <ClickSpark sparkColor={["#ff7a3d", "#ffb347"]} sparkCount={7} sparkRadius={18} disabled={on}>
+                        <ClickSpark sparkColor={["#5f6334", "#6e1e2c"]} sparkCount={7} sparkRadius={18} disabled={on}>
                           <button onClick={() => toggle(i.name)} aria-pressed={on} className="flex w-full items-center gap-4 px-5 py-3.5 text-left">
                             <span
                               className={`grid h-6 w-6 shrink-0 place-items-center rounded-lg border text-[12px] font-bold transition ${
-                                on ? "border-tang bg-tang text-ink" : "border-cream/25 text-transparent"
+                                on ? "border-wine bg-wine text-paper" : "border-ink/25 text-transparent"
                               }`}
                             >
                               ✓
                             </span>
                             <span className="min-w-0 flex-1">
-                              <span className={`block text-[15px] transition ${on ? "text-cream/35 line-through" : ""}`}>{i.name}</span>
+                              <span className={`block text-[15px] transition ${on ? "text-ink/35 line-through" : ""}`}>{i.name}</span>
                               {i.para && <span className="block truncate text-[11px] text-mute/80">{i.para}</span>}
                             </span>
-                            <span className={`shrink-0 text-right font-mono text-xs ${on ? "text-mute/50" : "text-ember"}`}>{i.qty}</span>
+                            <span className={`shrink-0 text-right font-mono text-xs ${on ? "text-mute/50" : "text-olive"}`}>{i.qty}</span>
                           </button>
                         </ClickSpark>
                       </motion.li>
@@ -116,7 +116,7 @@ export default function Market() {
       </div>
 
       {got.length > 0 && (
-        <button onClick={() => setGot([])} className="mt-8 w-full text-center font-mono text-[11px] uppercase tracking-[0.2em] text-mute hover:text-cream">
+        <button onClick={() => setGot([])} className="mt-8 w-full text-center font-mono text-[11px] uppercase tracking-[0.2em] text-mute hover:text-ink">
           Empezar lista nueva
         </button>
       )}

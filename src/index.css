@@ -5,20 +5,23 @@
   --font-sans: "Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
 
-  --color-ink: #0b110d;
-  --color-ink-2: #121a15;
-  --color-ink-3: #1a241e;
-  --color-line: rgb(242 237 227 / 0.09);
-  --color-cream: #f2ede3;
-  --color-mute: #9aa69c;
-  --color-tang: #ff7a3d;
-  --color-ember: #ffb347;
-  --color-sage: #c9d8b6;
+  /* Papel crema, tinta, borgoña y oliva */
+  --color-paper: #f3eee6;
+  --color-paper-2: #fbf8f3;
+  --color-paper-3: #eae3d8;
+  --color-line: rgb(42 29 32 / 0.11);
+  --color-ink: #2a1d20;
+  --color-mute: #75686a;
+  --color-wine: #6e1e2c;
+  --color-wine-2: #8c3443;
+  --color-olive: #5f6334;
+  --color-olive-2: #c9cc8a;
+  --color-olive-soft: #e6e4cf;
 }
 
-html, body, #root { background: var(--color-ink); }
+html, body, #root { background: var(--color-paper); }
 body {
-  color: var(--color-cream);
+  color: var(--color-ink);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -webkit-tap-highlight-color: transparent;
@@ -32,7 +35,7 @@ body {
   inset: -50%;
   pointer-events: none;
   z-index: 60;
-  opacity: 0.06;
+  opacity: 0.045;
   background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
 }
 
