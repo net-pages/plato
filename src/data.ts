@@ -9,6 +9,11 @@ export interface Recipe {
   steps: string[];
   minutes: number;
   free?: boolean;
+  /** Estimado: kcal y macros (g). Ver NUTRI más abajo. */
+  kcal?: number;
+  p?: number;
+  c?: number;
+  g?: number;
 }
 
 export const MEALS: { id: MealId; name: string; time: string }[] = [
@@ -390,3 +395,24 @@ export const SWAPS: { group: string; note: string; list: [string, string][] }[] 
     list: [["Yogur griego", "1 vaso pequeño"], ["Yogur descremado", "1 vaso pequeño"], ["Leche descremada", "1 vaso pequeño"], ["Kéfir", "1 vaso pequeño"]],
   },
 ];
+
+// Estimado de kcal y macros por plato [kcal, proteína, carbohidratos, grasa],
+// calculado ingrediente por ingrediente con porciones cocidas. Es aproximado.
+const NUTRI: Record<number, Partial<Record<MealId, [number, number, number, number]>>> = {
+  1: { desayuno: [430, 31, 18, 25], mm: [300, 27, 42, 4], almuerzo: [500, 51, 46, 11], mt: [200, 10, 35, 2], cena: [420, 48, 24, 13] },
+  2: { desayuno: [335, 48, 14, 7], mm: [225, 26, 28, 2], almuerzo: [575, 45, 48, 18], mt: [160, 7, 28, 2], cena: [340, 48, 17, 8] },
+  3: { desayuno: [400, 27, 22, 22], mm: [245, 25, 32, 2], almuerzo: [520, 55, 46, 13], mt: [275, 16, 44, 4], cena: [425, 37, 35, 14] },
+  4: { desayuno: [350, 38, 20, 11], mm: [255, 26, 26, 5], almuerzo: [495, 42, 55, 13], mt: [245, 10, 37, 6], cena: [465, 46, 24, 20] },
+  5: { desayuno: [320, 22, 22, 17], mm: [275, 26, 31, 6], almuerzo: [590, 44, 47, 23], mt: [165, 6, 25, 4], cena: [290, 46, 18, 3] },
+  6: { desayuno: [440, 28, 30, 22], mm: [265, 27, 33, 4], almuerzo: [405, 39, 52, 4], mt: [310, 17, 42, 7] },
+  0: { desayuno: [410, 27, 28, 21], mm: [260, 28, 28, 6], almuerzo: [630, 48, 55, 25], cena: [420, 53, 31, 8] },
+};
+for (const [day, meals] of Object.entries(NUTRI)) {
+  for (const [id, v] of Object.entries(meals)) {
+    const r = PLAN[Number(day)][id as MealId];
+    [r.kcal, r.p, r.c, r.g] = v!;
+  }
+}
+
+/** Requerimiento diario según el plan de la nutricionista. */
+export const KCAL_REQUIREMENT = 2410;

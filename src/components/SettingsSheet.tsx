@@ -1,19 +1,25 @@
 import { useState } from "react";
 import { AnimatePresence, motion, useDragControls } from "motion/react";
 import { downloadICS, notifySupported } from "../reminders";
+import { AI_KEY_STORAGE, getKey } from "../ai";
+import { KeySetup } from "./LogSheet";
+import { KCAL_REQUIREMENT } from "../data";
 import { MEALS } from "../data";
-import { DEFAULT_TIMES, type Times } from "../store";
+import { DEFAULT_TIMES, type Goals, type Times } from "../store";
 
 interface Props {
   open: boolean;
   onClose: () => void;
   times: Times;
   setTimes: (t: Times) => void;
+  goals: Goals;
+  setGoals: (g: Goals) => void;
   notify: boolean;
   setNotify: (v: boolean) => void;
 }
 
-export default function SettingsSheet({ open, onClose, times, setTimes, notify, setNotify }: Props) {
+export default function SettingsSheet({ open, onClose, times, setTimes, notify, setNotify, goals, setGoals }: Props) {
+  const [key, setKey] = useState(() => getKey());
   const [msg, setMsg] = useState<string | null>(null);
   const drag = useDragControls();
   const denied = notifySupported() && Notification.permission === "denied";
@@ -76,6 +82,64 @@ export default function SettingsSheet({ open, onClose, times, setTimes, notify, 
                 </li>
               ))}
             </ul>
+            <h3 className="mt-6 font-display text-3xl italic">Metas del día</h3>
+            <div className="mt-3 grid grid-cols-2 gap-2">
+              <label className="rounded-2xl border border-line bg-bg px-4 py-3">
+                <span className="block font-mono text-[10px] uppercase tracking-[0.18em] text-muted">Calorías</span>
+                <span className="flex items-baseline gap-1">
+                  <input
+                    inputMode="numeric"
+                    value={goals.kcal || ""}
+                    onChange={(e) => setGoals({ ...goals, kcal: Math.min(6000, parseInt(e.target.value.replace(/\D/g, "")) || 0) })}
+                    className="w-full min-w-0 bg-transparent font-display text-3xl focus:outline-none"
+                  />
+                  <span className="text-xs text-muted">kcal</span>
+                </span>
+              </label>
+              <label className="rounded-2xl border border-line bg-bg px-4 py-3">
+                <span className="block font-mono text-[10px] uppercase tracking-[0.18em] text-muted">Agua</span>
+                <span className="flex items-baseline gap-1">
+                  <input
+                    inputMode="numeric"
+                    value={goals.water || ""}
+                    onChange={(e) => setGoals({ ...goals, water: Math.min(6000, parseInt(e.target.value.replace(/\D/g, "")) || 0) })}
+                    className="w-full min-w-0 bg-transparent font-display text-3xl focus:outline-none"
+                  />
+                  <span className="text-xs text-muted">ml</span>
+                </span>
+              </label>
+            </div>
+            <p className="mt-2 px-1 text-[11px] leading-snug text-muted/80">
+              Tu plan indica un requerimiento de {KCAL_REQUIREMENT.toLocaleString("es-CO")} kcal. Si Ana María te da otra meta, cámbiala aquí.
+            </p>
+
+            <h3 className="mt-6 font-display text-3xl italic">Calorías con IA</h3>
+            <div className="mt-3">
+              {key ? (
+                <div className="flex items-center gap-3 rounded-2xl border border-line bg-bg px-4 py-3.5">
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-[15px] font-semibold">Clave guardada</span>
+                    <span className="block truncate font-mono text-xs text-muted">{key.slice(0, 10)}…{key.slice(-4)} · solo en este teléfono</span>
+                  </span>
+                  <button
+                    onClick={() => {
+                      try {
+                        localStorage.removeItem(AI_KEY_STORAGE);
+                      } catch {
+                        /* sin almacenamiento */
+                      }
+                      setKey("");
+                    }}
+                    className="rounded-xl border border-line px-3 py-2 text-xs font-semibold text-muted hover:text-fg"
+                  >
+                    Quitar
+                  </button>
+                </div>
+              ) : (
+                <KeySetup onSaved={() => setKey(getKey())} />
+              )}
+            </div>
+
             <h3 className="mt-6 font-display text-3xl italic">Recordatorios</h3>
             <div className="mt-3 space-y-2">
               <button

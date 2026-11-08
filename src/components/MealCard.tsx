@@ -2,6 +2,7 @@ import { AnimatePresence, motion } from "motion/react";
 import SpotlightCard from "./rb/SpotlightCard";
 import ClickSpark from "./rb/ClickSpark";
 import type { Recipe } from "../data";
+import { fmtNum, type Entry } from "../store";
 import { Olive } from "./Olives";
 
 interface Props {
@@ -14,9 +15,14 @@ interface Props {
   canCheck: boolean;
   onCheck: () => void;
   isNow: boolean;
+  entries: Entry[];
+  onOther: () => void;
+  onRemoveEntry: (id: string) => void;
 }
 
-export default function MealCard({ name, time, recipe, open, onToggleOpen, done, canCheck, onCheck, isNow }: Props) {
+export default function MealCard({ name, time, recipe, open, onToggleOpen, done, canCheck, onCheck, isNow, entries, onOther, onRemoveEntry }: Props) {
+  const replaced = entries.some((e) => e.replaces);
+  const struck = done || replaced;
   return (
     <SpotlightCard
       theme="dark"
@@ -35,13 +41,34 @@ export default function MealCard({ name, time, recipe, open, onToggleOpen, done,
         {/* Contenido */}
         <div className="min-w-0 flex-1">
           <h3
-            className={`font-display text-[1.65rem] italic leading-[1.05] transition ${done ? "text-fg/40 line-through decoration-primary/60 decoration-1" : ""} ${
+            className={`font-display text-[1.65rem] italic leading-[1.05] transition ${struck ? "text-fg/40 line-through decoration-primary/60 decoration-1" : ""} ${
               recipe.free ? "text-secondary" : ""
             }`}
           >
             {recipe.title}
           </h3>
-          <p className={`mt-2 text-[13px] leading-relaxed ${done ? "text-muted/60" : "text-muted"}`}>{recipe.items.join(" · ")}</p>
+          <p className={`mt-2 text-[13px] leading-relaxed ${struck ? "text-muted/60" : "text-muted"}`}>
+            {recipe.items.join(" · ")}
+            {recipe.kcal ? <span className="whitespace-nowrap text-secondary/80"> · ≈ {recipe.kcal} kcal</span> : null}
+          </p>
+
+          {entries.length > 0 && (
+            <ul className="mt-3 space-y-1.5 rounded-2xl bg-bg/40 px-3 py-2.5">
+              <li className="font-mono text-[10px] uppercase tracking-[0.18em] text-primary-2">{replaced ? "Comiste en su lugar" : "Además comiste"}</li>
+              {entries.map((e) => (
+                <li key={e.id} className="flex items-center gap-2 text-sm">
+                  {e.thumb && <img src={e.thumb} alt="" className="h-7 w-7 rounded-md object-cover" />}
+                  <span className="min-w-0 flex-1 truncate">{e.name}</span>
+                  <span className="whitespace-nowrap font-mono text-[11px] text-secondary">{fmtNum(e.kcal)} kcal</span>
+                  {canCheck && (
+                    <button onClick={() => onRemoveEntry(e.id)} aria-label={`Borrar ${e.name}`} className="px-1 text-muted hover:text-fg">
+                      ×
+                    </button>
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
 
           <button
             onClick={onToggleOpen}
@@ -82,6 +109,12 @@ export default function MealCard({ name, time, recipe, open, onToggleOpen, done,
               </motion.ol>
             )}
           </AnimatePresence>
+
+          {canCheck && !done && (
+            <button onClick={onOther} className="mt-3 ml-4 inline-flex text-[11px] font-semibold uppercase tracking-[0.15em] text-muted transition hover:text-fg">
+              {recipe.free ? "+ Registrar" : "Comí otra cosa"}
+            </button>
+          )}
         </div>
 
         {/* Check */}

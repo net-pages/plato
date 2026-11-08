@@ -11,12 +11,13 @@ interface Props {
   times: Times;
   onReveal: (id: MealId) => void;
   onDone: (id: MealId) => void;
+  onOther: (id: MealId) => void;
 }
 
 const card =
   "relative overflow-hidden rounded-[2rem] border border-line bg-[radial-gradient(90%_70%_at_80%_20%,rgb(110_44_54/0.55),transparent_70%)] bg-surface/70";
 
-export default function Hero({ focus, recipe, times, onReveal, onDone }: Props) {
+export default function Hero({ focus, recipe, times, onReveal, onDone, onOther }: Props) {
   if (!focus || !recipe) {
     return (
       <div className={`${card} px-6 py-10`}>
@@ -63,9 +64,13 @@ export default function Hero({ focus, recipe, times, onReveal, onDone }: Props) 
             )}
             <Counter value={m} fontSize={13} textColor="#d2b48c" fontWeight={600} minDigits={h > 0 ? 2 : 1} />
             <span>min</span>
+            {recipe.kcal ? <span className="text-secondary">· ≈ {recipe.kcal} kcal</span> : null}
           </div>
         ) : (
-          <p className="mt-3 font-mono text-[13px] text-muted">{recipe.free ? "Sin porciones. Sin culpa." : `Desde las ${fmt12(times[meal.id])}`}</p>
+          <p className="mt-3 font-mono text-[13px] text-muted">
+            {recipe.free ? "Sin porciones. Sin culpa." : `Desde las ${fmt12(times[meal.id])}`}
+            {recipe.kcal ? <span className="text-secondary"> · ≈ {recipe.kcal} kcal</span> : null}
+          </p>
         )}
 
         <ul className="mt-5 flex max-w-[78%] flex-wrap gap-1.5">
@@ -85,13 +90,18 @@ export default function Hero({ focus, recipe, times, onReveal, onDone }: Props) 
           </button>
           <ClickSpark sparkColor={["#b9c47f", "#d2b48c"]} sparkCount={9} sparkRadius={28} className="w-auto! flex-1">
             <button
-              onClick={() => onDone(meal.id)}
+              onClick={() => (recipe.free ? onOther(meal.id) : onDone(meal.id))}
               className="h-full w-full whitespace-nowrap rounded-2xl bg-primary px-4 py-3.5 text-sm font-bold text-bg transition hover:bg-primary-2 active:scale-[0.98]"
             >
-              Comido ✓
+              {recipe.free ? "Registrar" : "Comido ✓"}
             </button>
           </ClickSpark>
         </div>
+        {!recipe.free && (
+          <button onClick={() => onOther(meal.id)} className="mt-3 w-full text-center text-[13px] text-muted underline-offset-4 hover:text-fg hover:underline">
+            Comí otra cosa
+          </button>
+        )}
       </div>
     </div>
   );

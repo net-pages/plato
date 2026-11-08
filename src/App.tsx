@@ -1,7 +1,10 @@
 import { useMemo, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { DAYS, DAYS_SHORT, MEALS, PLAN, type MealId } from "./data";
-import { DEFAULT_TIMES, dateKey, fmt12, streak, toMinutes, useNow, usePersisted, type Times } from "./store";
+import { DAYS, DAYS_SHORT, KCAL_REQUIREMENT, MEALS, PLAN, type MealId } from "./data";
+import { DEFAULT_TIMES, dateKey, dayTotals, fmt12, streak, toMinutes, useNow, usePersisted, type Entry, type Goals, type Slot, type Times } from "./store";
+import KcalCard from "./components/KcalCard";
+import WaterCard from "./components/WaterCard";
+import LogSheet from "./components/LogSheet";
 import Hero from "./components/Hero";
 import MealCard from "./components/MealCard";
 import { GuideView, PrepView } from "./components/Views";
@@ -29,30 +32,56 @@ export default function App() {
   const [times, setTimes] = usePersisted<Times>("plato.times", DEFAULT_TIMES);
   const [done, setDone] = usePersisted<Record<string, MealId[]>>("plato.done", {});
   const [notify, setNotify] = usePersisted<boolean>("plato.notify", false);
+  const [log, setLog] = usePersisted<Record<string, Entry[]>>("plato.log", {});
+  const [water, setWater] = usePersisted<Record<string, number>>("plato.water", {});
+  const [goals, setGoals] = usePersisted<Goals>("plato.goals", { kcal: KCAL_REQUIREMENT, water: 2500 });
+  const [logSheet, setLogSheet] = useState<{ open: boolean; slot: Slot; replaces: boolean }>({ open: false, slot: "extra", replaces: false });
   useMealNotifications(notify, times);
 
   const isToday = day === today;
   const doneToday = done[todayKey] ?? [];
+  const logToday = log[todayKey] ?? [];
+  const waterToday = water[todayKey] ?? 0;
+  // comidas cubiertas: el plato del plan o algo registrado en su lugar
+  const coveredOn = (key: string) => {
+    const set = new Set<MealId>(done[key] ?? []);
+    for (const e of log[key] ?? []) if (e.replaces && e.slot !== "extra") set.add(e.slot);
+    return [...set];
+  };
+  const coveredToday = coveredOn(todayKey);
+  const totals = dayTotals(PLAN[today], doneToday, logToday);
   const meals = useMemo(() => [...MEALS].sort((a, b) => toMinutes(times[a.id]) - toMinutes(times[b.id])), [times]);
 
-  const toggle = (id: MealId) =>
+  const toggle = (id: MealId) => {
+    const marking = !doneToday.includes(id);
     setDone((prev) => {
       const list = prev[todayKey] ?? [];
       return { ...prev, [todayKey]: list.includes(id) ? list.filter((x) => x !== id) : [...list, id] };
     });
+    // si ahora sí se comió el plato del plan, lo registrado en su lugar pasa a ser extra
+    if (marking && logToday.some((e) => e.slot === id && e.replaces))
+      setLog((prev) => ({ ...prev, [todayKey]: (prev[todayKey] ?? []).map((e) => (e.slot === id ? { ...e, replaces: false } : e)) }));
+  };
+
+  const saveEntries = (entries: Entry[], slot: Slot, replaces: boolean) => {
+    setLog((prev) => ({ ...prev, [todayKey]: [...(prev[todayKey] ?? []), ...entries] }));
+    if (replaces && slot !== "extra") setDone((prev) => ({ ...prev, [todayKey]: (prev[todayKey] ?? []).filter((x) => x !== slot) }));
+  };
+  const removeEntry = (id: string) => setLog((prev) => ({ ...prev, [todayKey]: (prev[todayKey] ?? []).filter((e) => e.id !== id) }));
+  const openLog = (slot: Slot, replaces: boolean) => setLogSheet({ open: true, slot, replaces });
 
   const focus = useMemo(() => {
     const nowMin = now.getHours() * 60 + now.getMinutes();
     let idx = -1;
     meals.forEach((m, i) => toMinutes(times[m.id]) <= nowMin && (idx = i));
     for (let i = Math.max(idx, 0); i < meals.length; i++) {
-      if (!doneToday.includes(meals[i].id)) {
+      if (!coveredToday.includes(meals[i].id)) {
         const start = toMinutes(times[meals[i].id]);
         return { meal: meals[i], minutesUntil: Math.max(0, start - nowMin) };
       }
     }
     return null;
-  }, [now, meals, times, doneToday]);
+  }, [now, meals, times, coveredToday.join()]);
 
   const reveal = (id: MealId) => {
     setOpen(id);
@@ -62,7 +91,7 @@ export default function App() {
     }, 60);
   };
 
-  const s = streak(done, now);
+  const s = streak(Object.fromEntries([...new Set([...Object.keys(done), ...Object.keys(log)])].map((k) => [k, coveredOn(k)])), now);
   const dateLabel = now.toLocaleDateString("es-CO", { weekday: "long", day: "numeric", month: "long" });
 
   return (
@@ -123,7 +152,7 @@ export default function App() {
                 {/* Hero */}
                 <section className="mt-5">
                   {isToday ? (
-                    <Hero focus={focus} times={times} recipe={focus ? PLAN[day][focus.meal.id] : null} onReveal={reveal} onDone={toggle} />
+                    <Hero focus={focus} times={times} recipe={focus ? PLAN[day][focus.meal.id] : null} onReveal={reveal} onDone={toggle} onOther={(id) => openLog(id, true)} />
                   ) : (
                     <div className="rounded-[2rem] border border-line bg-surface px-6 py-8">
                       <p className="font-mono text-[11px] uppercase tracking-[0.25em] text-muted">Así viene el</p>
@@ -140,18 +169,23 @@ export default function App() {
 
                 {isToday && <InstallBanner onOpen={() => setInstall(true)} />}
 
-                {/* Progreso */}
+                {/* Calorías, agua y racha */}
                 {isToday && (
-                  <section className="mt-4 grid grid-cols-2 gap-3">
-                    <Stat label="Platos de hoy">
-                      <CountUp key={doneToday.length} from={Math.max(0, doneToday.length - 1)} to={doneToday.length} duration={0.6} trigger="load" />
-                      <span className="text-muted">/{MEALS.length}</span>
-                    </Stat>
-                    <Stat label={s === 1 ? "Día sin fallar" : "Días sin fallar"}>
-                      <CountUp to={s} duration={1.2} trigger="load" />
-                      <span className="ml-1 text-primary">●</span>
-                    </Stat>
-                  </section>
+                  <>
+                    <KcalCard totals={totals} goal={goals.kcal} onAdd={() => openLog(focus?.meal.id ?? "extra", false)} />
+                    <WaterCard ml={waterToday} goal={goals.water} setMl={(v) => setWater((w) => ({ ...w, [todayKey]: v }))} />
+                    <div className="mt-3 flex items-center justify-between rounded-2xl border border-line px-5 py-3 text-sm">
+                      <span className="text-muted">
+                        Platos de hoy <span className="font-semibold text-fg">{coveredToday.length}/{MEALS.length}</span>
+                      </span>
+                      <span className="text-muted">
+                        {s === 1 ? "Día sin fallar" : "Días sin fallar"}{" "}
+                        <span className="font-semibold text-fg">
+                          <CountUp to={s} duration={1.2} trigger="load" />
+                        </span>
+                      </span>
+                    </div>
+                  </>
                 )}
 
                 {/* Línea de tiempo */}
@@ -167,6 +201,9 @@ export default function App() {
                           open={open === m.id}
                           onToggleOpen={() => setOpen(open === m.id ? null : m.id)}
                           done={isToday && doneToday.includes(m.id)}
+                          entries={isToday ? logToday.filter((e) => e.slot === m.id) : []}
+                          onOther={() => openLog(m.id, true)}
+                          onRemoveEntry={removeEntry}
                           canCheck={isToday}
                           onCheck={() => toggle(m.id)}
                           isNow={isToday && focus?.meal.id === m.id}
@@ -174,6 +211,25 @@ export default function App() {
                       </li>
                     ))}
                   </ol>
+                  {isToday && logToday.some((e) => e.slot === "extra") && (
+                    <div className="mt-3 rounded-[1.75rem] border border-line bg-surface/60 px-5 py-4">
+                      <h3 className="font-mono text-[11px] uppercase tracking-[0.2em] text-muted">Fuera de carta</h3>
+                      <ul className="mt-2 divide-y divide-line">
+                        {logToday
+                          .filter((e) => e.slot === "extra")
+                          .map((e) => (
+                            <li key={e.id} className="flex items-center gap-3 py-2.5">
+                              {e.thumb && <img src={e.thumb} alt="" className="h-9 w-9 rounded-lg object-cover" />}
+                              <span className="min-w-0 flex-1 truncate text-[15px]">{e.name}</span>
+                              <span className="whitespace-nowrap font-mono text-xs text-secondary">{e.kcal.toLocaleString("es-CO")} kcal</span>
+                              <button onClick={() => removeEntry(e.id)} aria-label={`Borrar ${e.name}`} className="text-muted hover:text-fg">
+                                ×
+                              </button>
+                            </li>
+                          ))}
+                      </ul>
+                    </div>
+                  )}
                 </section>
               </>
             )}
@@ -221,19 +277,19 @@ export default function App() {
       </nav>
 
       <InstallSheet open={install} onClose={() => setInstall(false)} />
-      <SettingsSheet open={settings} onClose={() => setSettings(false)} times={times} setTimes={setTimes} notify={notify} setNotify={setNotify} />
+      <LogSheet
+        open={logSheet.open}
+        onClose={() => setLogSheet((l) => ({ ...l, open: false }))}
+        slot={logSheet.slot}
+        replaces={logSheet.replaces}
+        planTitle={(slot) => (slot === "extra" ? null : PLAN[today][slot].title)}
+        onSave={saveEntries}
+      />
+      <SettingsSheet open={settings} onClose={() => setSettings(false)} times={times} setTimes={setTimes} notify={notify} setNotify={setNotify} goals={goals} setGoals={setGoals} />
     </div>
   );
 }
 
-function Stat({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div className="rounded-3xl border border-line bg-surface px-5 py-4">
-      <div className="font-display text-4xl leading-none">{children}</div>
-      <p className="mt-1.5 font-mono text-[10px] uppercase tracking-[0.2em] text-muted">{label}</p>
-    </div>
-  );
-}
 
 const stroke = { fill: "none", stroke: "currentColor", strokeWidth: 1.8, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
 const ClockIcon = () => (

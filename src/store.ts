@@ -59,3 +59,62 @@ export function useNow(intervalMs = 30_000) {
   }, [intervalMs]);
   return now;
 }
+
+/* ---------- Registro de lo que realmente se comió ---------- */
+
+export type Slot = MealId | "extra";
+
+export interface Entry {
+  id: string;
+  slot: Slot;
+  name: string;
+  portion?: string;
+  kcal: number;
+  p: number;
+  c: number;
+  g: number;
+  source: "foto" | "texto" | "lista" | "manual";
+  /** true = se comió en lugar del plato del plan para esa comida */
+  replaces: boolean;
+  thumb?: string;
+  at: number;
+}
+
+export interface Goals {
+  kcal: number;
+  water: number; // ml
+}
+
+export interface Totals {
+  kcal: number;
+  p: number;
+  c: number;
+  g: number;
+}
+
+export const newId = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
+
+/** Suma lo comido: platos del plan marcados + todo lo registrado. */
+export function dayTotals(
+  plan: Record<MealId, { kcal?: number; p?: number; c?: number; g?: number }>,
+  planDone: MealId[],
+  entries: Entry[],
+): Totals {
+  const t: Totals = { kcal: 0, p: 0, c: 0, g: 0 };
+  for (const id of planDone) {
+    const r = plan[id];
+    t.kcal += r.kcal ?? 0;
+    t.p += r.p ?? 0;
+    t.c += r.c ?? 0;
+    t.g += r.g ?? 0;
+  }
+  for (const e of entries) {
+    t.kcal += e.kcal;
+    t.p += e.p;
+    t.c += e.c;
+    t.g += e.g;
+  }
+  return { kcal: Math.round(t.kcal), p: Math.round(t.p), c: Math.round(t.c), g: Math.round(t.g) };
+}
+
+export const fmtNum = (n: number) => Math.round(n).toLocaleString("es-CO");
